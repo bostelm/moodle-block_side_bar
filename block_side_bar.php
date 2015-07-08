@@ -105,21 +105,20 @@ class block_side_bar extends block_list {
                     parent::instance_config_commit();
                 }
             }
+        }
 
-            // Double check that the section number hasn't been modified by something else.
-            // Fixes problem found by Charlotte Owen when moving 'center column' course sections.
-            if ($section->section != $this->config->section) {
-                $section->section = $this->config->section;
-                $DB->update_record('course_sections', $section);
-            }
+        // Update section number in config, if necessary.
+        if ($this->config->section != $section->section) {
+            $this->config->section = $section->section;
+            parent::instance_config_commit();
         }
 
         // extra fast view mode
         $modinfo = get_fast_modinfo($course);
         if (!$isediting) {
-            if (!empty($modinfo->sections[$this->config->section])) {
+            if (!empty($modinfo->sections[$section->section])) {
                 $options = array('overflowdiv' => true);
-                foreach ($modinfo->sections[$this->config->section] as $cmid) {
+                foreach ($modinfo->sections[$section->section] as $cmid) {
                     $cm = $modinfo->cms[$cmid];
                     if (!$cm->uservisible) {
                         continue;
@@ -148,13 +147,13 @@ class block_side_bar extends block_list {
         $courserenderer = $this->page->get_renderer('core', 'course');
         $ismoving = ismoving($course->id);
 
-        if (!$cs = $DB->get_record('course_sections', array('section' => $this->config->section, 'course' => $course->id))) {
-            debugging('Could not get course section record for section '.$this->config->section, DEBUG_DEVELOPER);
+        if (!$cs = $DB->get_record('course_sections', array('id' => $this->config->section_id))) {
+            debugging('Could not get course section record for section id '.$this->config->section_id, DEBUG_DEVELOPER);
             return $this->content;
         }
 
         $modinfo = get_fast_modinfo($course);
-        $section = $modinfo->get_section_info($this->config->section);
+        $section = $modinfo->get_section_info($cs->section);
 
         $modnames = get_module_types_names();
 
@@ -179,9 +178,9 @@ class block_side_bar extends block_list {
                     '/course/mod.php?cancelcopy=true&amp;sesskey='.sesskey().'">'.$strcancel.'</a>)';
         }
 
-        if (!empty($modinfo->sections[$this->config->section])) {
+        if (!empty($modinfo->sections[$cs->section])) {
             $options = array('overflowdiv' => true);
-            foreach ($modinfo->sections[$this->config->section] as $modnumber) {
+            foreach ($modinfo->sections[$cs->section] as $modnumber) {
                 $mod = $modinfo->cms[$modnumber];
                 if (!$mod->uservisible) {
                     continue;
@@ -237,7 +236,7 @@ class block_side_bar extends block_list {
             $this->content->icons[] = '';
         }
 
-        $this->content->footer = $courserenderer->course_section_add_cm_control($course, $this->config->section,
+        $this->content->footer = $courserenderer->course_section_add_cm_control($course, $cs->section,
                 null, array('inblock' => true));
         // Replace modchooser with dropdown
         $this->content->footer = str_replace('hiddenifjs addresourcedropdown', 'visibleifjs addresourcedropdown', $this->content->footer);
@@ -254,22 +253,17 @@ class block_side_bar extends block_list {
     public function instance_delete() {
         global $CFG, $DB;
 
-        if (empty($this->instance) || !isset($this->config->section)) {
+        if (empty($this->instance) || !isset($this->config->section_id)) {
             return true;
         }
 
         // Cleanup the section created by this block and any course modules.
         $sql = "SELECT cm.id, cm.instance, mm.name AS modname
-                  FROM {course_sections} cs
-            INNER JOIN {course_modules} cm ON cm.section = cs.id
+                  FROM {course_modules} cm
             INNER JOIN {modules} mm ON mm.id = cm.module
-                 WHERE cs.section = :section
-                       AND cs.course = :course";
+                 WHERE cm.section = :sectionid";
 
-        $params = array(
-            'section' => $this->config->section,
-            'course'  => $this->page->course->id
-        );
+        $params = array('sectionid' => $this->config->section_id);
 
         if ($mods = $DB->get_records_sql($sql, $params)) {
             foreach ($mods as $mod) {
