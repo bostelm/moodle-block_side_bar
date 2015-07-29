@@ -66,9 +66,18 @@ class block_side_bar extends block_list {
             $this->config->title = '';
         }
 
-        $course = $this->page->course;
+        $context = context::instance_by_id($this->instance->parentcontextid);
+        if ($context instanceof context_course) {
+            $courseid = $context->instanceid;
+            if ($courseid == $this->page->course->id) {
+                $course = $this->page->course;
+            } else {
+                $course = $DB->get_record('course', array('id' => $courseid));
+            }
+        } else {
+            $course = get_site();
+        }
         require_once($CFG->dirroot.'/course/lib.php');
-        $context   = context_course::instance($course->id);
         $isediting = $this->page->user_is_editing() && has_capability('moodle/course:manageactivities', $context);
 
         // Create a new section for this block (if necessary).
