@@ -242,11 +242,10 @@ class block_side_bar extends block_list {
             $this->content->icons[] = '';
         }
 
-        $this->content->footer = $courserenderer->course_section_add_cm_control($course, $cs->section,
-                null, array('inblock' => true));
-        // Replace modchooser with dropdown
-        $this->content->footer = str_replace('hiddenifjs addresourcedropdown', 'visibleifjs addresourcedropdown', $this->content->footer);
-        $this->content->footer = str_replace('visibleifjs addresourcemodchooser', 'hiddenifjs addresourcemodchooser', $this->content->footer);
+        if ($course->id == SITEID) {
+            $this->content->footer = $courserenderer->course_section_add_cm_control($course, 0,
+                    null, array('inblock' => true));
+        }
 
         return $this->content;
     }
