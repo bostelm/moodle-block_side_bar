@@ -182,7 +182,7 @@ class block_side_bar extends block_list {
         $editbuttons = '';
 
         if ($ismoving) {
-            $this->content->icons[] = '<img src="'.$OUTPUT->pix_url('t/move') . '" class="iconsmall" alt="" />';
+            $this->content->icons[] = $OUTPUT->pix_icon('t/move', "");
             $this->content->items[] = $USER->activitycopyname.'&nbsp;(<a href="'.$CFG->wwwroot.
                     '/course/mod.php?cancelcopy=true&amp;sesskey='.sesskey().'">'.$strcancel.'</a>)';
         }
@@ -216,8 +216,7 @@ class block_side_bar extends block_list {
                             continue;
                         }
                         $this->content->items[] = '<a title="'.$strmovefull.'" href="'.$CFG->wwwroot.'/course/mod.php'.
-                            '?moveto='.$mod->id.'&amp;sesskey='.sesskey().'"><img style="height:16px; width:80px; border:0px"'.
-                            ' src="'.$OUTPUT->pix_url('movehere').'" alt="'.$strmovehere.'" /></a>';
+                            '?moveto='.$mod->id.'&amp;sesskey='.sesskey().'">'.$OUTPUT->pix_icon('movehere', $strmovehere).'</a>';
                         $this->content->icons[] = '';
                     }
                     $content = $mod->get_formatted_content(array('overflowdiv' => true, 'noclean' => true));
@@ -239,9 +238,7 @@ class block_side_bar extends block_list {
 
         if ($ismoving) {
             $this->content->items[] = '<a title="'.$strmovefull.'" href="'.$CFG->wwwroot.'/course/mod.php?'.
-                                      'movetosection='.$section->id.'&amp;sesskey='.sesskey().'"><img style="height'.
-                                      ':16px; width:80px; border:0px" src="'.$OUTPUT->pix_url('movehere').'" alt="'.
-                                      $strmovehere.'" /></a>';
+                                      'movetosection='.$section->id.'&amp;sesskey='.sesskey().'">'.$OUTPUT->pix_icon('movehere',$strmovehere).'</a>';
             $this->content->icons[] = '';
         }
 
